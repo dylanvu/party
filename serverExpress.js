@@ -9,8 +9,8 @@ const app = express();
 
 app.disable('x-powered-by');
 
-app.use('/guests', (req, res) => {
-  fs.readFile(guestsPath, 'utf8', (err, guestsJSON) => {
+app.get('/guests', (req, res) => {
+  fs.readFile(guestsPath, 'utf8', (err, data) => {
     if (err) {
       console.error(err.stack);
       res.sendStatus(500);
@@ -18,9 +18,32 @@ app.use('/guests', (req, res) => {
       return;
     }
 
-    const guests = JSON.parse(guestsJSON);
+    const guests = JSON.parse(data);
 
     res.send(guests);
+  });
+});
+
+app.get('/guests/:id', (req, res) => {
+  fs.readFile(guestsPath, 'utf8', (err, data) => {
+    if (err) {
+      console.error(err.stack);
+      res.sendStatus(500);
+
+      return;
+    }
+
+    const guests = JSON.parse(data);
+    const id = Number.parseInt(req.params.id);
+
+    if (Number.isNaN(id) || id < 0 || id >= guests.length) {
+      res.sendStatus(404);
+
+      return;
+    }
+
+    res.set('Content-Type', 'text/plain');
+    res.send(guests[id]);
   });
 });
 
