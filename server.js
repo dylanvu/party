@@ -1,19 +1,18 @@
+/* eslint-disable no-console */
+
 'use strict';
 
-// Import modules
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
 
-// assign file path
 const guestsPath = path.join(__dirname, 'guests.json');
 
-// Create server
-// for every request, the callback is invoked. req will contain the incoming
-// HTTP request object. res will contain an empty outgoing HTTP response object
 const server = http.createServer((req, res) => {
+  const guestRegExp = /^\/guests\/(.*)$/;
+
   if (req.method === 'GET' && req.url === '/guests') {
-    fs.readFile(guestsPath, 'utf8', (err, guestsJSON) => {
+    fs.readFile(guestsPath, 'utf8', (err, data) => {
       if (err) {
         console.error(err.stack);
 
@@ -25,11 +24,11 @@ const server = http.createServer((req, res) => {
       }
 
       res.setHeader('Content-Type', 'application/json');
-      res.end(guestsJSON);
+      res.end(data);
     });
   }
-  else if (req.method === 'GET' && req.url === '/guests/0') {
-    fs.readFile(guestsPath, 'utf8', (err, guestsJSON) => {
+  else if (req.method === 'GET' && guestRegExp.test(req.url)) {
+    fs.readFile(guestsPath, 'utf8', (err, data) => {
       if (err) {
         console.error(err.stack);
 
@@ -40,17 +39,146 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      const guests = JSON.parse(guestsJSON);
-      const guestJSON = JSON.stringify(guests[0]);
+      const guests = JSON.parse(data);
+      const matches = req.url.match(guestRegExp);
+      const index = Number.parseInt(matches[1]);
+
+      if (Number.isNaN(index) || index < 0 || index >= guests.length) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('Not Found');
+
+        return;
+      }
+
+      const guestJSON = JSON.stringify(guests[index]);
 
       res.setHeader('Content-Type', 'application/json');
       res.end(guestJSON);
     });
   }
-  else if (req.method === 'GET' && req.url === '/guests/1') {
-    fs.readFile(guestsPath, 'utf8', (err, guestsJSON) => {
-      if (err) {
-        console.error(err.stack);
+  else if (req.method === 'POST' && req.url === '/guests') {
+    let bodyJSON = '';
+
+    req.on('data', (chunk) => {
+      bodyJSON += chunk.toString();
+    });
+
+    req.on('end', () => {
+      fs.readFile(guestsPath, 'utf8', (readErr, data) => {
+        if (readErr) {
+          console.error(readErr.stack);
+
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end('Internal Server Error');
+
+          return;
+        }
+
+        const body = JSON.parse(bodyJSON);
+        const guest = body.name;
+
+        if (!guest) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end('Bad Request');
+
+          return;
+        }
+
+        const guests = JSON.parse(data);
+
+        guests.push(guest);
+
+        const guestsJSON = JSON.stringify(guests);
+
+        fs.writeFile(guestsPath, guestsJSON, (writeErr) => {
+          if (writeErr) {
+            console.error(writeErr.stack);
+
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'text/plain');
+            res.end('Internal Server Error');
+
+            return;
+          }
+
+          res.setHeader('Content-Type', 'text/plain');
+          res.end(guest);
+        });
+      });
+    });
+  }
+  // UPDATE
+  else if (req.method === 'PUT' && guestRegExp.test(req.url)) {
+    let bodyJSON = '';
+
+    req.on('data', (chunk) => {
+      bodyJSON += chunk.toString();
+    });
+
+    req.on('end', () => {
+      fs.readFile(guestsPath, 'utf8', (readErr, data) => {
+        if (readErr) {
+          console.error(readErr.stack);
+
+          res.statusCode = 500;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end('Internal Server Error');
+
+          return;
+        }
+
+        const guests = JSON.parse(data);
+        const matches = req.url.match(guestRegExp);
+        const index = Number.parseInt(matches[1]);
+
+        if (Number.isNaN(index) || index < 0 || index >= guests.length) {
+          res.statusCode = 404;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end('Not Found');
+
+          return;
+        }
+
+        const body = JSON.parse(bodyJSON);
+        const guest = body.name;
+
+        if (!guest) {
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'text/plain');
+          res.end('Bad Request');
+
+          return;
+        }
+
+        guests[index] = guest;
+
+        const guestsJSON = JSON.stringify(guests);
+
+        fs.writeFile(guestsPath, guestsJSON, (writeErr) => {
+          if (writeErr) {
+            console.error(writeErr.stack);
+
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'text/plain');
+            res.end('Internal Server Error');
+
+            return;
+          }
+
+          res.setHeader('Content-Type', 'text/plain');
+          res.end(guest);
+        });
+      });
+    });
+  }
+  // DELETE
+  else if (req.method === 'DELETE' && guestRegExp.test(req.url)) {
+    fs.readFile(guestsPath, 'utf8', (readErr, data) => {
+      if (readErr) {
+        console.error(readErr.stack);
 
         res.statusCode = 500;
         res.setHeader('Content-Type', 'text/plain');
@@ -59,17 +187,35 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      const guests = JSON.parse(guestsJSON);
-      const guestJSON = JSON.stringify(guests[1]);
+      const guests = JSON.parse(data);
+      const matches = req.url.match(guestRegExp);
+      const index = Number.parseInt(matches[1]);
 
-      res.setHeader('Content-Type', 'application/json');
-      res.end(guestJSON);
+      if (Number.isNaN(index) || index < 0 || index >= guests.length) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end('Not Found');
+
+        return;
+      }
+
+      const guest = guests.splice(index, 1)[0];
+      const guestsJSON = JSON.stringify(guests);
+
+      fs.writeFile(guestsPath, guestsJSON, (writeErr) => {
+        if (writeErr) {
+          throw writeErr;
+        }
+
+        res.setHeader('Content-Type', 'plain/text');
+        res.end(guest);
+      });
     });
   }
   else {
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/plain');
-    res.end('Not found');
+    res.end('Not Found');
   }
 });
 
@@ -78,3 +224,5 @@ const port = process.env.PORT || 8000;
 server.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
+
+module.exports = server;
