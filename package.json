@@ -1,0 +1,23 @@
+{
+  "name": "party",
+  "version": "1.0.0",
+  "description": "",
+  "main": "guests.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dylanvu/party.git"
+  },
+  "author": "Dylan Vu <dylan.n.vu@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dylanvu/party/issues"
+  },
+  "homepage": "https://github.com/dylanvu/party#readme",
+  "engines": {
+    "node": "7.2.1"
+  }
+}
