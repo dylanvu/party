@@ -135,6 +135,43 @@ app.patch('/guests/:id', (req, res) => {
   });
 });
 
+// Delete
+app.delete('/guests/:id', (req, res) => {
+  fs.readFile(guestsPath, 'utf8', (readErr, data) => {
+    if (readErr) {
+      console.error(err.stack);
+      res.sendStatus(500);
+
+      return;
+    }
+
+    const guests = JSON.parse(data);
+    const id = Number.parseInt(req.params.id);
+
+    if (Number.isNaN(id) || id < 0 || id >= guests.length) {
+      res.sendStatus(404);
+
+      return;
+    }
+
+    const guest = guests.splice(id, 1)[0];
+
+    const guestJSON = JSON.stringify(guests);
+
+    fs.writeFile(guestsPath, guestJSON, (writeErr) => {
+      if (writeErr) {
+        console.error(writeErr.stack);
+        res.sendStatus(500);
+
+        return;
+      }
+
+      res.set('Content-Type', 'text/plain');
+      res.send(guest);
+    });
+  });
+});
+
 app.use((req, res) => {
   res.sendStatus(404);
 });
