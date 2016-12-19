@@ -13,6 +13,10 @@ const morgan = require('morgan');
 
 app.use(morgan('dev'));
 
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+
 app.get('/guests', (req, res) => {
   fs.readFile(guestsPath, 'utf8', (err, data) => {
     if (err) {
@@ -25,6 +29,40 @@ app.get('/guests', (req, res) => {
     const guests = JSON.parse(data);
 
     res.send(guests);
+  });
+});
+
+app.post('/guests', (req, res) => {
+  fs.readFile(guestsPath, 'utf8', (readErr, data) => {
+    if (readErr) {
+      console.error(err.stack);
+      res.sendStatus(500);
+
+      return;
+    }
+
+    const guests = JSON.parse(data);
+    const guest = req.body.name;
+
+    if (!guests) {
+      res.sendStatus(400);
+    }
+
+    guests.push(guest);
+
+    const guestJSON = JSON.stringify(guests);
+
+    fs.writeFile(guestsPath, guestJSON, (writeErr) => {
+      if (writeErr) {
+        console.error(writeErr.stack);
+        res.sendStatus(500);
+
+        return;
+      }
+
+      res.set('Content-Type', 'text/plain');
+      res.send(guest);
+    });
   });
 });
 
