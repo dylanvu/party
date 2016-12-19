@@ -9,6 +9,10 @@ const app = express();
 
 app.disable('x-powered-by');
 
+const morgan = require('morgan');
+
+app.use(morgan('dev'));
+
 app.get('/guests', (req, res) => {
   fs.readFile(guestsPath, 'utf8', (err, data) => {
     if (err) {
