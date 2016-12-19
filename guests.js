@@ -3,16 +3,26 @@
 // Import built-in modules
 const fs = require('fs');
 const path = require('path');
-
 // assign guests.json file path
 const guestsPath = path.join(__dirname, 'guests.json');
 
-fs.readFile(guestsPath, 'utf8', (err, data) => {
-  if (err) {
-    throw err;
-  }
+// assign cl args
+const node = path.basename(process.argv[0]);
+const file = path.basename(process.argv[1]);
+const cmd = process.argv[2];
 
-  const guests = JSON.parse(data);
+if (cmd === 'read') {
+  fs.readFile(guestsPath, 'utf8', (err, data) => {
+    if (err) {
+      throw err;
+    }
 
-  console.log(guests);
-});
+    const guests = JSON.parse(data);
+
+    console.log(guests);
+  });
+}
+else {
+  console.error(`Usage: ${node} ${file} read`);
+  process.exit(1);
+}
