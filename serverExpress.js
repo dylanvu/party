@@ -17,6 +17,7 @@ const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
 
+// Read all
 app.get('/guests', (req, res) => {
   fs.readFile(guestsPath, 'utf8', (err, data) => {
     if (err) {
@@ -32,6 +33,31 @@ app.get('/guests', (req, res) => {
   });
 });
 
+// Read one
+app.get('/guests/:id', (req, res) => {
+  fs.readFile(guestsPath, 'utf8', (err, data) => {
+    if (err) {
+      console.error(err.stack);
+      res.sendStatus(500);
+
+      return;
+    }
+
+    const guests = JSON.parse(data);
+    const id = Number.parseInt(req.params.id);
+
+    if (Number.isNaN(id) || id < 0 || id >= guests.length) {
+      res.sendStatus(404);
+
+      return;
+    }
+
+    res.set('Content-Type', 'text/plain');
+    res.send(guests[id]);
+  });
+});
+
+// Create
 app.post('/guests', (req, res) => {
   fs.readFile(guestsPath, 'utf8', (readErr, data) => {
     if (readErr) {
@@ -66,9 +92,10 @@ app.post('/guests', (req, res) => {
   });
 });
 
-app.get('/guests/:id', (req, res) => {
-  fs.readFile(guestsPath, 'utf8', (err, data) => {
-    if (err) {
+// Update
+app.patch('/guests/:id', (req, res) => {
+  fs.readFile(guestsPath, 'utf8', (readErr, data) => {
+    if (readErr) {
       console.error(err.stack);
       res.sendStatus(500);
 
@@ -84,8 +111,27 @@ app.get('/guests/:id', (req, res) => {
       return;
     }
 
-    res.set('Content-Type', 'text/plain');
-    res.send(guests[id]);
+    const guest = req.body.name;
+
+    if (!guests) {
+      res.sendStatus(400);
+    }
+
+    guests[id] = guest;
+
+    const guestJSON = JSON.stringify(guests);
+
+    fs.writeFile(guestsPath, guestJSON, (writeErr) => {
+      if (writeErr) {
+        console.error(writeErr.stack);
+        res.sendStatus(500);
+
+        return;
+      }
+
+      res.set('Content-Type', 'text/plain');
+      res.send(guest);
+    });
   });
 });
 
