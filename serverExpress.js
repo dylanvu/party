@@ -18,12 +18,10 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 
 // Read all
-app.get('/guests', (req, res) => {
+app.get('/guests', (req, res, next) => {
   fs.readFile(guestsPath, 'utf8', (err, data) => {
     if (err) {
-      console.error(err.stack);
-      res.sendStatus(500);
-
+      next(err);
       return;
     }
 
@@ -34,12 +32,10 @@ app.get('/guests', (req, res) => {
 });
 
 // Read one
-app.get('/guests/:id', (req, res) => {
+app.get('/guests/:id', (req, res, err) => {
   fs.readFile(guestsPath, 'utf8', (err, data) => {
     if (err) {
-      console.error(err.stack);
-      res.sendStatus(500);
-
+      next(err);
       return;
     }
 
@@ -58,12 +54,10 @@ app.get('/guests/:id', (req, res) => {
 });
 
 // Create
-app.post('/guests', (req, res) => {
+app.post('/guests', (req, res, err) => {
   fs.readFile(guestsPath, 'utf8', (readErr, data) => {
     if (readErr) {
-      console.error(err.stack);
-      res.sendStatus(500);
-
+      nest(readErr);
       return;
     }
 
@@ -80,9 +74,7 @@ app.post('/guests', (req, res) => {
 
     fs.writeFile(guestsPath, guestJSON, (writeErr) => {
       if (writeErr) {
-        console.error(writeErr.stack);
-        res.sendStatus(500);
-
+        next(writeErr);
         return;
       }
 
@@ -93,12 +85,10 @@ app.post('/guests', (req, res) => {
 });
 
 // Update
-app.patch('/guests/:id', (req, res) => {
+app.patch('/guests/:id', (req, res, next) => {
   fs.readFile(guestsPath, 'utf8', (readErr, data) => {
     if (readErr) {
-      console.error(err.stack);
-      res.sendStatus(500);
-
+      nest(readErr);
       return;
     }
 
@@ -123,9 +113,7 @@ app.patch('/guests/:id', (req, res) => {
 
     fs.writeFile(guestsPath, guestJSON, (writeErr) => {
       if (writeErr) {
-        console.error(writeErr.stack);
-        res.sendStatus(500);
-
+        next(writeErr);
         return;
       }
 
@@ -136,12 +124,10 @@ app.patch('/guests/:id', (req, res) => {
 });
 
 // Delete
-app.delete('/guests/:id', (req, res) => {
+app.delete('/guests/:id', (req, res, next) => {
   fs.readFile(guestsPath, 'utf8', (readErr, data) => {
     if (readErr) {
-      console.error(err.stack);
-      res.sendStatus(500);
-
+      nest(readErr);
       return;
     }
 
@@ -160,9 +146,7 @@ app.delete('/guests/:id', (req, res) => {
 
     fs.writeFile(guestsPath, guestJSON, (writeErr) => {
       if (writeErr) {
-        console.error(writeErr.stack);
-        res.sendStatus(500);
-
+        next(writeErr);
         return;
       }
 
@@ -174,6 +158,11 @@ app.delete('/guests/:id', (req, res) => {
 
 app.use((req, res) => {
   res.sendStatus(404);
+});
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.sendStatus(500);
 });
 
 const port = process.env.PORT || 8000;
