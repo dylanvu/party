@@ -18,5 +18,8 @@
   "homepage": "https://github.com/dylanvu/party#readme",
   "engines": {
     "node": "7.2.1"
+  },
+  "dependencies": {
+    "express": "^4.14.0"
   }
 }
