@@ -3,6 +3,7 @@
 // Import built-in modules
 const fs = require('fs');
 const path = require('path');
+
 // assign guests.json file path
 const guestsPath = path.join(__dirname, 'guests.json');
 
